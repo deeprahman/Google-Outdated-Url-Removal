@@ -1,7 +1,7 @@
 'use strict'
 const { By, Key, until } = require('selenium-webdriver');
 
-const delay = (ms) => {new Promise(res => setTimeout(res, ms))};
+const delay = (ms) => { new Promise(res => setTimeout(res, ms)) };
 
 /**
  * 
@@ -12,13 +12,26 @@ async function removeOutdatedContent(driver, data = []) {
     let res;
     try {
         const title = 'Remove outdated content from Google Search - Search Console';
-         const xpath_btn = '//*[@id="yDmH0d"]/c-wiz/div/div[2]/div[1]/div/div[3]/button';
+
+        res = await driver.wait(
+            until.titleIs(title),
+            120000,
+            "Timed out: Remove Outdated Content",
+            1000
+        );
+
+        const xpath_btn = '//*[@id="yDmH0d"]/c-wiz/div/div[2]/div[1]/div/div[3]/button';
+
+        // Find the element with text with "New request"
+        const new_req_xpath = `//*[contains(text(), 'New request')]`;
+        const newRequestElement = await driver.findElement(By.xpath(new_req_xpath));
+        const newRequestButton = await newRequestElement.findElement(By.xpath('ancestor::button'));
 
         let button_xpath = '//*[@id="yDmH0d"]/div[7]/div[2]/div/div[2]/div/button';
         for (let i = 0; i < data.length; i++) {
             let url = 'https://' + data[i];
 
-           
+
             res = await driver.wait(
                 until.titleIs(title),
                 100000,
@@ -26,9 +39,13 @@ async function removeOutdatedContent(driver, data = []) {
                 2000
             );
 
-         
 
-            res = await driver.findElement(By.xpath(xpath_btn)).click();
+            // Find the element with text with "New request"
+            const new_req_xpath = `//*[contains(text(), 'New request')]`;
+            const newRequestElement = await driver.findElement(By.xpath(new_req_xpath));
+            const newRequestButton = await newRequestElement.findElement(By.xpath('ancestor::button'));
+
+            await newRequestButton.click();
 
             res = await driver.wait(
                 until.elementLocated(By.xpath('/html/body/div[7]/div[2]/div/div[1]/div/div/div[2]/span/div[2]/label/input')),
@@ -36,7 +53,9 @@ async function removeOutdatedContent(driver, data = []) {
                 'Timeout: Could not find element',
                 5000
             );
-                await delay(2000);
+
+            await delay(2000);
+
             let pr = await driver.findElement(By.xpath('/html/body/div[7]/div[2]/div/div[1]/div/div/div[2]/span/div[2]/label/input')).sendKeys(url, Key.RETURN);
             let isSubmitted = await driver.wait(
                 until.elementLocated(By.xpath('//*[@id="yDmH0d"]/div[7]/div[2]/div/div[2]/div/button')),
